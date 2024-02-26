@@ -297,7 +297,9 @@ function sortCitiesArray(arr) {
  *      { country: 'Belarus', city: 'Minsk' },
  *      { country: 'Poland', city: 'Lodz' }
  *     ],
+ *      //keySelector
  *     item => item.country,
+ *      //valueSelector
  *     item => item.city
  *   )
  *            =>
@@ -307,8 +309,19 @@ function sortCitiesArray(arr) {
  *    "Poland" => ["Lodz"]
  *   }
  */
-function group(/* array, keySelector, valueSelector */) {
-  throw new Error('Not implemented');
+function group(array, keySelector, valueSelector) {
+  const resultMap = new Map();
+  array.forEach((item) => {
+    const key = keySelector(item);
+    const value = valueSelector(item);
+
+    if (resultMap.has(key)) {
+      resultMap.get(key).push(value);
+    } else {
+      resultMap.set(key, Array(value));
+    }
+  });
+  return resultMap;
 }
 
 /**
@@ -366,32 +379,52 @@ function group(/* array, keySelector, valueSelector */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  selectors: [],
+
+  element(value) {
+    this.selectors.push(value);
+    return this;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    this.selectors.push(`#${value}`);
+    return this;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.selectors.push(`.${value}`);
+    return this;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.selectors.push(`[${value}]`);
+    return this;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.selectors.push(`:${value}`);
+    return this;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    this.selectors.push(`::${value}`);
+    return this;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const select1 = selector1.stringify();
+    const select2 = selector2.stringify();
+    this.combined = `${select1} ${combinator} ${select2}`;
+    return this;
+  },
+
+  stringify() {
+    const stringifiedSelectors = [...this.selectors];
+    const { combined } = this;
+    this.combined = '';
+    this.selectors.length = 0;
+
+    return combined || stringifiedSelectors.join('');
   },
 };
 
