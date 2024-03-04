@@ -377,54 +377,58 @@ function group(array, keySelector, valueSelector) {
  *
  *  For more examples see unit tests.
  */
-
 const cssSelectorBuilder = {
-  selectors: [],
+  result: '',
+
+  addSelector(value, order) {
+    if (this.order && this.order > order) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    if (this.order && this.order === order && [1, 2, 6].includes(order)) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    const obj = { ...this };
+    obj.order = order;
+    obj.result = this.result + value;
+    return obj;
+  },
 
   element(value) {
-    this.selectors.push(value);
-    return this;
+    return this.addSelector(value, 1);
   },
 
   id(value) {
-    this.selectors.push(`#${value}`);
-    return this;
+    return this.addSelector(`#${value}`, 2);
   },
 
   class(value) {
-    this.selectors.push(`.${value}`);
-    return this;
+    return this.addSelector(`.${value}`, 3);
   },
 
   attr(value) {
-    this.selectors.push(`[${value}]`);
-    return this;
+    return this.addSelector(`[${value}]`, 4);
   },
 
   pseudoClass(value) {
-    this.selectors.push(`:${value}`);
-    return this;
+    return this.addSelector(`:${value}`, 5);
   },
 
   pseudoElement(value) {
-    this.selectors.push(`::${value}`);
-    return this;
+    return this.addSelector(`::${value}`, 6);
   },
 
   combine(selector1, combinator, selector2) {
-    const select1 = selector1.stringify();
-    const select2 = selector2.stringify();
-    this.combined = `${select1} ${combinator} ${select2}`;
-    return this;
+    const obj = { ...this };
+    obj.result = `${selector1.result} ${combinator} ${selector2.result}`;
+    return obj;
   },
 
   stringify() {
-    const stringifiedSelectors = [...this.selectors];
-    const { combined } = this;
-    this.combined = '';
-    this.selectors.length = 0;
-
-    return combined || stringifiedSelectors.join('');
+    return this.result;
   },
 };
 
